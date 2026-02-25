@@ -56,6 +56,7 @@ io.on('connection', (socket) => {
 
     // Enviar l'estat actual dels seients quan un client es connecta a un esdeveniment
     socket.on('join_event', async (eventId) => {
+        console.log(`Socket ${socket.id} s'uneix a l'esdeveniment ${eventId}`);
         socket.join(`event_${eventId}`);
         const seats = await db.all('SELECT * FROM seats WHERE event_id = ?', [eventId]);
         socket.emit('seats_update', seats);
@@ -63,6 +64,7 @@ io.on('connection', (socket) => {
 
     // Reserva de seient
     socket.on('reserve_seat', async ({ eventId, seatId, userId }) => {
+        console.log(`Reserva sol·licitada: Event ${eventId}, Seient ${seatId}, Usuari ${userId}`);
         const reservedUntil = new Date(Date.now() + 5 * 60 * 1000).toISOString();
 
         // Utilitzar un UPDATE atòmic amb una clàusula WHERE status = 'available'
@@ -106,43 +108,65 @@ io.on('connection', (socket) => {
 
     // Confirmar compra
     socket.on('confirm_purchase', async ({ eventId, userId, email, name }) => {
-        const reservedSeats = await db.all(
-            'SELECT * FROM seats WHERE event_id = ? AND user_id = ? AND status = "reserved"',
-            [eventId, userId]
-        );
-
-        if (reservedSeats.length > 0) {
-            const totalAmount = reservedSeats.reduce((acc, s) => acc + s.price, 0);
-
-            // Crear la compra
-            const purchaseResult = await db.run(
-                'INSERT INTO purchases (user_email, total_amount) VALUES (?, ?)',
-                [email, totalAmount]
+        try {
+            const reservedSeats = await db.all(
+                'SELECT * FROM seats WHERE event_id = ? AND user_id = ? AND status = "reserved"',
+                [eventId, userId]
             );
-            const purchaseId = purchaseResult.lastID;
 
-            // Actualitzar seients a "sold" i crear items de compra
-            for (const seat of reservedSeats) {
-                await db.run(
-                    'UPDATE seats SET status = "sold", reserved_until = NULL, user_id = ? WHERE id = ?',
-                    [email, seat.id] // Guardem l'email al seient venut per referència
+            if (reservedSeats.length > 0) {
+                const totalAmount = reservedSeats.reduce((acc, s) => acc + s.price, 0);
+
+                // Crear la compra
+                const purchaseResult = await db.run(
+                    'INSERT INTO purchases (user_email, total_amount) VALUES (?, ?)',
+                    [email, totalAmount]
                 );
-                await db.run(
-                    'INSERT INTO purchase_items (purchase_id, seat_id) VALUES (?, ?)',
-                    [purchaseId, seat.id]
-                );
+                const purchaseId = purchaseResult.lastID;
+
+                // Actualitzar seients a "sold" i crear items de compra
+                for (const seat of reservedSeats) {
+                    await db.run(
+                        'UPDATE seats SET status = "sold", reserved_until = NULL, user_id = ? WHERE id = ?',
+                        [email, seat.id]
+                    );
+                    await db.run(
+                        'INSERT INTO purchase_items (purchase_id, seat_id) VALUES (?, ?)',
+                        [purchaseId, seat.id]
+                    );
+                }
+
+                // Notificar a tothom el canvi d'estat
+                const allSeats = await db.all('SELECT * FROM seats WHERE event_id = ?', [eventId]);
+                io.to(`event_${eventId}`).emit('seats_update', allSeats);
+                broadcastAdminUpdate();
+
+                socket.emit('purchase_success');
+                console.log(`✅ Compra confirmada per ${email}: ${reservedSeats.length} seients.`);
+            } else {
+                socket.emit('purchase_error', { message: 'No tens seients reservats.' });
             }
-
-            // Notificar a tothom el canvi d'estat
-            const allSeats = await db.all('SELECT * FROM seats WHERE event_id = ?', [eventId]);
-            io.to(`event_${eventId}`).emit('seats_update', allSeats);
-            broadcastAdminUpdate();
-
-            socket.emit('purchase_success');
-            console.log(`Compra confirmada per ${email}: ${reservedSeats.length} seients.`);
-        } else {
-            socket.emit('purchase_error', { message: 'No tens seients reservats.' });
+        } catch (error) {
+            console.error('❌ Error en confirm_purchase:', error);
+            socket.emit('purchase_error', { message: 'Error intern del servidor.' });
         }
+    });
+
+    // Reiniciar seients (Admin)
+    socket.on('reset_seats', async () => {
+        await db.run('UPDATE seats SET status = "available", user_id = NULL, reserved_until = NULL');
+        await db.run('DELETE FROM purchase_items');
+        await db.run('DELETE FROM purchases');
+
+        // Notificar a tothom
+        const allEvents = await db.all('SELECT id FROM events');
+        for (const event of allEvents) {
+            const seats = await db.all('SELECT * FROM seats WHERE event_id = ?', [event.id]);
+            io.to(`event_${event.id}`).emit('seats_update', seats);
+        }
+
+        await broadcastAdminUpdate();
+        console.log('Seients i compres reiniciades per un administrador.');
     });
 
     socket.on('disconnect', () => {
@@ -181,6 +205,28 @@ app.get('/api/tickets', async (req, res) => {
     `;
     const tickets = await db.all(sql, [email]);
     res.json(tickets);
+});
+
+app.post('/api/admin/reset', async (req, res) => {
+    try {
+        await db.run('UPDATE seats SET status = "available", user_id = NULL, reserved_until = NULL');
+        await db.run('DELETE FROM purchase_items');
+        await db.run('DELETE FROM purchases');
+
+        // Notificar a tothom via socket
+        const allEvents = await db.all('SELECT id FROM events');
+        for (const event of allEvents) {
+            const seats = await db.all('SELECT * FROM seats WHERE event_id = ?', [event.id]);
+            io.to(`event_${event.id}`).emit('seats_update', seats);
+        }
+
+        await broadcastAdminUpdate();
+        console.log('✅ Base de dades reiniciada via API REST.');
+        res.json({ success: true, message: 'Seients i compres reiniciades correctament.' });
+    } catch (error) {
+        console.error('❌ Error en reset via API:', error);
+        res.status(500).json({ error: 'Error intern al reiniciar la base de dades.' });
+    }
 });
 
 // Start Server

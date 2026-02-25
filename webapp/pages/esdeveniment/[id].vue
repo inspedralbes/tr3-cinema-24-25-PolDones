@@ -3,8 +3,8 @@
     <div v-if="pending" class="loading">Carregant esdeveniment...</div>
     <div v-else-if="event" class="event-detail">
       <header class="event-header">
-        <NuxtLink to="/" class="back-link">← Tornar al llistat</NuxtLink>
-        <h1>{{ event.name }}</h1>
+        <NuxtLink to="/" class="back-link">← Tornar al cartell</NuxtLink>
+        <h1 class="serif">{{ event.name }}</h1>
         <div class="meta">
           <span>📅 {{ event.date }}</span>
           <span>📍 {{ event.location }}</span>
@@ -13,19 +13,29 @@
 
       <div class="booking-layout">
         <!-- Seat Map -->
-        <div class="seat-map-container premium-card">
-          <div class="screen">PANTALLA</div>
+        <div class="seat-map-container premium-card elevation-2">
+          <div class="screen-wrapper">
+             <div class="screen">PANTALLA</div>
+          </div>
           
-          <div class="seat-grid" :style="{ gridTemplateColumns: `repeat(${event.cols}, 1fr)` }">
-            <div 
-              v-for="seat in seats" 
-              :key="seat.id" 
-              class="seat"
-              :class="[getSeatStatusClass(seat), { reserving: seat.id === lastSelectedSeatId }]"
-              @click="toggleSeat(seat)"
-              :title="`Fila ${seat.row}, Seient ${seat.col} - ${seat.price}€`"
-            >
-              {{ seat.col }}
+          <div class="seat-grid-wrapper">
+            <div class="seat-grid" :style="{ gridTemplateColumns: `auto repeat(${event.cols}, min-content)` }">
+              <template v-for="r in event.rows" :key="`row-${r}`">
+                <!-- Row Indicator -->
+                <div class="row-label">{{ r }}</div>
+                
+                <!-- Seats for this row -->
+                <div 
+                  v-for="seat in getSeatsByRow(r)" 
+                  :key="seat.id" 
+                  class="seat"
+                  :class="[getSeatStatusClass(seat), { reserving: seat.id === lastSelectedSeatId }]"
+                  @click="toggleSeat(seat)"
+                  :title="`Fila ${seat.row}, Seient ${seat.col} - ${seat.price}€`"
+                >
+                  {{ seat.col }}
+                </div>
+              </template>
             </div>
           </div>
 
@@ -77,19 +87,36 @@ const route = useRoute();
 const eventId = route.params.id;
 const { $socket } = useNuxtApp();
 
-const { data: event, pending } = useFetch(`http://localhost:3001/api/events/${eventId}`);
+const { data: event, pending: eventPending } = useFetch(`http://localhost:3001/api/events/${eventId}`, { key: `event-${eventId}` });
+const { data: initialSeats, pending: seatsPending } = useFetch(`http://localhost:3001/api/events/${eventId}/seats`, { key: `seats-${eventId}` });
+const pending = computed(() => eventPending.value || seatsPending.value);
+
 const seats = ref([]);
+const userId = useCookie('cinema_user_id');
+
+// Generar userId només al client si no existeix per evitar hydration mismatch
+onMounted(() => {
+  if (!userId.value) {
+    userId.value = Math.random().toString(36).substring(2, 11);
+  }
+});
+
 const selectedSeats = computed(() => seats.value.filter(s => s.status === 'reserved' && s.user_id === userId.value));
-const userId = useLocalStorage('cinema_user_id', Math.random().toString(36).substring(2, 11));
+const totalPrice = computed(() => selectedSeats.value.reduce((acc, s) => acc + s.price, 0));
+
 const lastSelectedSeatId = ref(null);
 const timer = ref(0);
 const timerInterval = ref(null);
 const errorMessage = ref('');
 
-const totalPrice = computed(() => selectedSeats.value.reduce((acc, s) => acc + s.price, 0));
+// Sincronitzar seients inicials
+watch(initialSeats, (newSeats) => {
+  if (newSeats) {
+    seats.value = [...newSeats];
+  }
+}, { immediate: true });
 
 onMounted(() => {
-  $socket.connect();
   $socket.emit('join_event', eventId);
 
   $socket.on('seats_update', (updatedSeats) => {
@@ -116,7 +143,10 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
-  $socket.disconnect();
+  $socket.off('seats_update');
+  $socket.off('seat_updated');
+  $socket.off('reservation_success');
+  $socket.off('reservation_error');
   clearInterval(timerInterval.value);
 });
 
@@ -163,6 +193,10 @@ function formatTime(seconds) {
   return `${m}:${s.toString().padStart(2, '0')}`;
 }
 
+function getSeatsByRow(rowNum) {
+  return seats.value.filter(s => s.row === rowNum).sort((a, b) => a.col - b.col);
+}
+
 function proceedToPurchase() {
   // Passar a la pàgina de pagament (encara per crear)
   navigateTo(`/pagament/${eventId}`);
@@ -179,45 +213,41 @@ function proceedToPurchase() {
 }
 
 .event-header h1 {
-  font-size: 2.5rem;
+  font-size: 3rem;
   margin: 0.5rem 0;
-  color: var(--primary);
 }
 
 .meta {
-  color: #888;
-  margin-bottom: 2rem;
-}
-
-.meta span {
-  margin-right: 1.5rem;
+  color: var(--ink-tertiary);
+  margin-bottom: 3rem;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .booking-layout {
   display: grid;
-  grid-template-columns: 1fr 350px;
-  gap: 2rem;
+  grid-template-columns: 1fr 380px;
+  gap: 3rem;
 }
 
-.screen {
-  background: linear-gradient(to bottom, #444, transparent);
-  height: 40px;
-  width: 80%;
-  margin: 0 auto 3rem;
-  border-radius: 50% / 100% 100% 0 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.8rem;
-  letter-spacing: 5px;
-  color: #888;
+.seat-map-container {
+  padding: 4rem 2rem;
+  background: var(--surface-low);
+  overflow: hidden;
+}
+
+.seat-grid-wrapper {
+  perspective: 1200px;
+  padding: 0 2rem;
 }
 
 .seat-grid {
   display: grid;
   justify-content: center;
-  gap: 8px;
-  padding: 1rem;
+  gap: 0;
+  transform: rotateX(20deg);
+  transform-style: preserve-3d;
 }
 
 .legend {
@@ -284,6 +314,54 @@ function proceedToPurchase() {
   margin-top: 1rem;
   text-align: center;
   font-size: 0.9rem;
+}
+
+@media (max-width: 992px) {
+  .booking-layout {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .selection-panel {
+    order: 2;
+  }
+
+  .seat-map-container {
+    order: 1;
+    padding: 2rem 1rem;
+  }
+
+  .event-header h1 {
+    font-size: 2.25rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .seat-grid-wrapper {
+    padding: 0;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 1rem;
+  }
+
+  .seat-grid {
+    width: max-content;
+    margin: 0 auto;
+  }
+
+  .row-label {
+    position: sticky;
+    left: 0;
+    background: var(--surface-low);
+    z-index: 2;
+    margin-right: 0.5rem;
+  }
+
+  .legend {
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: flex-start;
+  }
 }
 
 .loading {

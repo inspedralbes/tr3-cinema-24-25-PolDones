@@ -1,8 +1,8 @@
 <template>
   <div class="container">
     <header class="page-header">
-      <h1>Pròxims Esdeveniments</h1>
-      <p>Reserva les teves entrades per als esdeveniments més exclusius.</p>
+      <h1 class="serif">Pròxims Esdeveniments</h1>
+      <p>Explora la nostra selecció d'estrenes exclusives en un entorn inigualable.</p>
     </header>
 
     <div v-if="pending" class="loading">Carregant esdeveniments...</div>
@@ -32,11 +32,14 @@ const { data: events, pending, error } = useFetch('http://localhost:3001/api/eve
 }
 
 .page-header h1 {
-  font-size: 3rem;
-  margin-bottom: 0.5rem;
-  background: linear-gradient(to right, #fff, #888);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  font-size: 3.5rem;
+  margin-bottom: 1rem;
+  color: var(--ink-primary);
+}
+
+.page-header p {
+  color: var(--ink-secondary);
+  font-size: 1.1rem;
 }
 
 .events-grid {
@@ -68,6 +71,34 @@ const { data: events, pending, error } = useFetch('http://localhost:3001/api/eve
   line-height: 1.5;
   margin: 1rem 0;
   color: #ddd;
+}
+
+@media (max-width: 768px) {
+  .page-header h1 {
+    font-size: 2.5rem;
+  }
+
+  .events-grid {
+    display: flex;
+    overflow-x: auto;
+    padding-bottom: 2rem;
+    gap: 1.5rem;
+    margin: 0 -1rem; /* Negative margin to bleed to edges */
+    padding-left: 1rem;
+    padding-right: 1rem;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none; /* Hide scrollbar for cleaner look */
+  }
+
+  .events-grid::-webkit-scrollbar {
+    display: none;
+  }
+
+  .event-card {
+    min-width: 300px;
+    flex: 0 0 300px;
+    scroll-snap-align: start;
+  }
 }
 
 .icon {

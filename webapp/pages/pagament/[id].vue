@@ -1,14 +1,17 @@
 <template>
   <div class="container">
-    <div class="payment-container premium-card">
-      <header class="payment-header">
-        <h1>Finalitzar Compra</h1>
-        <p>Estàs a un pas d'aconseguir les teves entrades.</p>
+    <div v-if="!event">
+      <p>Carregant informació de l'esdeveniment...</p>
+    </div>
+    <div v-else-if="event" class="payment-view">
+      <header class="page-header">
+        <h1 class="serif">Finalitza la teva reserva</h1>
+        <p>Estàs a un pas de gaudir de la millor experiència cinematogràfica.</p>
       </header>
 
-      <div class="payment-grid">
-        <div class="user-info">
-          <h3>Dades personals</h3>
+      <div class="payment-layout">
+        <div class="summary-section premium-card">
+          <h3 class="serif">Resum de la selecció</h3>
           <form @submit.prevent="confirmPurchase" class="payment-form">
             <div class="form-group">
               <label for="email">Correu electrònic</label>
@@ -81,21 +84,25 @@ const name = ref('');
 const loading = ref(false);
 const success = ref(false);
 
-const userId = useLocalStorage('cinema_user_id', '');
+const userId = useCookie('cinema_user_id', { default: () => Math.random().toString(36).substring(2, 11) });
 const { data: event } = useFetch(`http://localhost:3001/api/events/${eventId}`);
-const { data: seatsData } = useFetch(`http://localhost:3001/api/events/${eventId}/seats`); // Necessitem un endpoint per seients o usar el socket
+const { data: seatsData } = useFetch(`http://localhost:3001/api/events/${eventId}/seats`);
 
-// Per simplificar, demanarem els seients que l'usuari té reservats al servidor via socket
 const reservedSeats = ref([]);
 
+// Sincronitzar seients inicials i quan canvien les dades del fetch
+watch([seatsData, userId], ([newSeats, newUserId]) => {
+  if (newSeats && newUserId) {
+    reservedSeats.value = newSeats.filter(s => s.status === 'reserved' && s.user_id === newUserId);
+  }
+}, { immediate: true });
+
 onMounted(() => {
-  $socket.connect();
-  $socket.emit('join_event', eventId);
-  
+  // Registrar listeners per a actualitzacions en temps real
   $socket.on('seats_update', (allSeats) => {
     reservedSeats.value = allSeats.filter(s => s.status === 'reserved' && s.user_id === userId.value);
-    if (reservedSeats.value.length === 0 && !success.value) {
-      // Si no hi ha seients reservats, tornar enrere
+    
+    if (reservedSeats.value.length === 0 && !success.value && !loading.value) {
       navigateTo(`/esdeveniment/${eventId}`);
     }
   });
@@ -109,6 +116,15 @@ onMounted(() => {
     loading.value = false;
     alert(message);
   });
+
+  // Unir-se a la sala per rebre actualitzacions posteriors
+  $socket.emit('join_event', eventId);
+});
+
+onUnmounted(() => {
+  $socket.off('seats_update');
+  $socket.off('purchase_success');
+  $socket.off('purchase_error');
 });
 
 const selectedSeatsCount = computed(() => reservedSeats.value.length);
@@ -135,26 +151,65 @@ function confirmPurchase() {
   margin-bottom: 3rem;
 }
 
-.payment-header h1 {
-  color: var(--primary);
+.page-header h1 {
   font-size: 2.5rem;
+  margin-bottom: 0.5rem;
 }
 
-.payment-grid {
+.page-header p {
+  color: var(--ink-secondary);
+  margin-bottom: 2rem;
+}
+
+.payment-layout {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 4rem;
+  gap: 3rem;
+  align-items: start;
 }
 
-.form-group {
+.summary-section h3, .form-section h3 {
+  margin-top: 0;
   margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border-soft);
+  padding-bottom: 1rem;
+}
+
+@media (max-width: 992px) {
+  .payment-layout {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .summary-section {
+    order: 1;
+  }
+
+  .form-section {
+    order: 2;
+  }
+}
+
+@media (max-width: 600px) {
+  .payment-form {
+    gap: 1rem;
+  }
+
+  .btn-primary {
+    width: 100%;
+  }
+
+  .page-header h1 {
+    font-size: 2rem;
+  }
 }
 
 label {
   display: block;
   margin-bottom: 0.5rem;
-  color: #aaa;
-  font-size: 0.9rem;
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--ink-secondary);
 }
 
 .form-input {

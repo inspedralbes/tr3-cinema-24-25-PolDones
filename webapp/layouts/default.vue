@@ -2,7 +2,7 @@
   <div class="app-layout">
     <header class="main-header">
       <nav class="container nav-bar">
-        <NuxtLink to="/" class="logo">Cinema<span>Premium</span></NuxtLink>
+        <NuxtLink to="/" class="logo serif">Cinema<span>Premium</span></NuxtLink>
         <div class="nav-links">
           <NuxtLink to="/">Inici</NuxtLink>
           <NuxtLink to="/entrades">Les meves entrades</NuxtLink>

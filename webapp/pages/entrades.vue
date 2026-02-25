@@ -2,8 +2,8 @@
   <div class="container">
     <div class="lookup-container premium-card">
       <header class="page-header">
-        <h1>Les meves Entrades</h1>
-        <p>Introdueix el teu correu electrònic per veure les teves entrades comprades.</p>
+        <h1 class="serif">Les meves entrades</h1>
+        <p>Introdueix el teu correu electrònic per recuperar les teves entrades.</p>
       </header>
 
       <form @submit.prevent="lookupTickets" class="lookup-form">
@@ -67,6 +67,17 @@ async function lookupTickets() {
 .page-header {
   text-align: center;
   margin-bottom: 2rem;
+}
+
+.page-header h1 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.lookup-card {
+  max-width: 500px;
+  margin: 0 auto 3rem;
+  padding: 3rem;
 }
 
 .lookup-form {

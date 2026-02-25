@@ -1,26 +1,27 @@
 <template>
   <div class="container">
-    <header class="admin-header">
-      <h1>Panell d'Administració</h1>
-      <div class="stats-overview">
-        <div class="stat-card premium-card">
-          <span class="label">Recaptació Total</span>
-          <span class="value">{{ stats.totalRevenue }}€</span>
-        </div>
-        <div class="stat-card premium-card">
-          <span class="label">Entrades Venudes</span>
-          <span class="value">{{ stats.soldSeats }}</span>
-        </div>
-        <div class="stat-card premium-card">
-          <span class="label">Ocupació Media</span>
-          <span class="value">{{ stats.occupancy }}%</span>
-        </div>
-        <div class="stat-card premium-card">
-          <span class="label">Usuaris Online</span>
-          <span class="value">{{ connectedUsers }}</span>
-        </div>
-      </div>
+    <header class="page-header">
+      <h1 class="serif">Panell d'Administració</h1>
+      <p>Monitorització en temps real de la sala i les vendes.</p>
     </header>
+    <div class="stats-grid">
+      <div class="stat-card premium-card">
+        <h3>Recaptació Total</h3>
+        <span class="stat-value">{{ stats.totalRevenue }}€</span>
+      </div>
+      <div class="stat-card premium-card">
+        <h3>Entrades Venudes</h3>
+        <span class="stat-value">{{ stats.soldSeats }}</span>
+      </div>
+      <div class="stat-card premium-card">
+        <h3>Ocupació Media</h3>
+        <span class="stat-value">{{ stats.occupancy }}%</span>
+      </div>
+      <div class="stat-card premium-card">
+        <h3>Usuaris Online</h3>
+        <span class="stat-value">{{ connectedUsers }}</span>
+      </div>
+    </div>
 
     <div class="admin-content">
       <section class="events-management">
@@ -38,6 +39,7 @@
             </div>
             <div class="ev-actions">
               <button class="btn btn-outline" @click="viewDetails(event.id)">Monitoritzar</button>
+              <button class="btn btn-danger" @click="resetAllSeats">Reiniciar Seients</button>
             </div>
           </div>
         </div>
@@ -75,8 +77,14 @@ onMounted(() => {
   $socket.on('admin_update', (data) => {
     events.value = data.events;
     connectedUsers.value = data.connectedUsers;
+    if (resetting.value) {
+       resetting.value = false;
+       alert('Seients i compres reiniciats correctament.');
+    }
   });
 });
+
+const resetting = ref(false);
 
 onUnmounted(() => {
   $socket.disconnect();
@@ -85,41 +93,67 @@ onUnmounted(() => {
 function viewDetails(id) {
   navigateTo(`/esdeveniment/${id}`);
 }
+
+async function resetAllSeats() {
+  if (confirm('Estàs segur que vols reiniciar tots els seients de tots els esdeveniments?')) {
+    resetting.value = true;
+    try {
+      const response = await $fetch('http://localhost:3001/api/admin/reset', {
+        method: 'POST'
+      });
+      if (response.success) {
+        alert('Base de dades reiniciada correctament.');
+      }
+    } catch (error) {
+      console.error('Error al reiniciar:', error);
+      alert('Error al reiniciar la base de dades.');
+    } finally {
+      resetting.value = false;
+    }
+  }
+}
 </script>
 
 <style scoped>
-.admin-header {
+.page-header {
   margin-bottom: 4rem;
 }
 
-.admin-header h1 {
+.page-header h1 {
   font-size: 2.5rem;
-  margin-bottom: 2rem;
+  margin-bottom: 0.5rem;
 }
 
-.stats-overview {
+.stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 1.5rem;
+  margin-bottom: 3rem;
 }
 
 .stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: 2rem;
 }
 
-.stat-card .label {
-  color: #888;
-  font-size: 0.9rem;
-  margin-bottom: 0.5rem;
+.stat-card h3 {
+  font-family: 'Inter', sans-serif;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 1px;
+  color: var(--ink-tertiary);
+  margin: 0 0 0.5rem 0;
 }
 
-.stat-card .value {
-  font-size: 2rem;
-  font-weight: 800;
-  color: var(--primary);
+.stat-value {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--ink-primary);
+  display: block;
 }
 
 .event-admin-card {
@@ -141,14 +175,18 @@ function viewDetails(id) {
 .tag.reserved { background: rgba(255, 152, 0, 0.2); color: #ff9800; }
 .tag.available { background: rgba(76, 175, 80, 0.2); color: #4caf50; }
 
-.btn-outline {
-  background: transparent;
-  border: 1px solid var(--primary);
-  color: var(--primary);
-}
-
 .btn-outline:hover {
   background: var(--primary);
   color: white;
+}
+
+.btn-danger {
+  background: var(--brand);
+  color: white;
+  margin-left: 0.5rem;
+}
+
+.btn-danger:hover {
+  background: #bb0000;
 }
 </style>

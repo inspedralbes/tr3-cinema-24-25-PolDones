@@ -1,75 +1,23 @@
-# Nuxt Minimal Starter
+# 🎬 Webapp Cinema (Nuxt 3)
 
-Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
+Aquest és el frontend de l'aplicació Cinema, construït amb Nuxt 3.
 
-## Setup
+## 🚀 Com executar
 
-Make sure to install dependencies:
+Dins d'aquesta carpeta, instal·la les dependències i arrenca el servidor de desenvolupament:
 
 ```bash
-# npm
 npm install
-
-# pnpm
-pnpm install
-
-# yarn
-yarn install
-
-# bun
-bun install
-```
-
-## Development Server
-
-Start the development server on `http://localhost:3000`:
-
-```bash
-# npm
 npm run dev
-
-# pnpm
-pnpm dev
-
-# yarn
-yarn dev
-
-# bun
-bun run dev
 ```
 
-## Production
+La web estarà disponible a [http://localhost:3000](http://localhost:3000).
 
-Build the application for production:
+## 💡 Comandaments útils
 
-```bash
-# npm
-npm run build
+- `npm run dev`: Arrenca el servidor de desenvolupament.
+- `npm run build`: Genera el projecte per a producció.
+- `npm run preview`: Previsualitza la versió de producció localment.
 
-# pnpm
-pnpm build
-
-# yarn
-yarn build
-
-# bun
-bun run build
-```
-
-Locally preview production build:
-
-```bash
-# npm
-npm run preview
-
-# pnpm
-pnpm preview
-
-# yarn
-yarn preview
-
-# bun
-bun run preview
-```
-
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+---
+Per a més detalls tècnics, consulta la [documentació global](../doc/README.md).
