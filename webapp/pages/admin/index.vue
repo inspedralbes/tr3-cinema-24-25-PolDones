@@ -26,6 +26,9 @@
     <div class="admin-content">
       <section class="events-management">
         <h2>Gestió d'Esdeveniments</h2>
+        <button class="btn btn-danger" @click="resetAllSeats">Reiniciar Seients</button>
+        <br>
+        <br>
         <div class="events-list">
           <div v-for="event in events" :key="event.id" class="event-admin-card premium-card">
             <div class="ev-info">
@@ -39,7 +42,6 @@
             </div>
             <div class="ev-actions">
               <button class="btn btn-outline" @click="viewDetails(event.id)">Monitoritzar</button>
-              <button class="btn btn-danger" @click="resetAllSeats">Reiniciar Seients</button>
             </div>
           </div>
         </div>
