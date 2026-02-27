@@ -9,6 +9,9 @@
     <div v-else-if="error" class="error">S'ha produït un error al carregar els esdeveniments.</div>
     <div v-else class="events-grid">
       <div v-for="event in events" :key="event.id" class="premium-card event-card">
+        <div class="event-image" v-if="event.image">
+          <img :src="event.image" :alt="event.name" />
+        </div>
         <div class="event-info">
           <h3>{{ event.name }}</h3>
           <p class="event-date">Data: {{ event.date }}</p>
@@ -52,6 +55,29 @@ const { data: events, pending, error } = useFetch('http://localhost:3001/api/eve
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  overflow: hidden;
+  padding: 0 !important;
+}
+
+.event-image {
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+}
+
+.event-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.event-card:hover .event-image img {
+  transform: scale(1.1);
+}
+
+.event-info {
+  padding: 1.5rem;
 }
 
 .event-info h3 {
