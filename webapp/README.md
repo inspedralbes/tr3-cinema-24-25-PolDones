@@ -1,8 +1,8 @@
-# 🎬 Webapp Cinema (Nuxt 3)
+# Webapp Cinema (Nuxt 3)
 
 Aquest és el frontend de l'aplicació Cinema, construït amb Nuxt 3.
 
-## 🚀 Com executar
+## Com executar
 
 Dins d'aquesta carpeta, instal·la les dependències i arrenca el servidor de desenvolupament:
 
@@ -13,7 +13,7 @@ npm run dev
 
 La web estarà disponible a [http://localhost:3000](http://localhost:3000).
 
-## 💡 Comandaments útils
+## Comandaments útils
 
 - `npm run dev`: Arrenca el servidor de desenvolupament.
 - `npm run build`: Genera el projecte per a producció.

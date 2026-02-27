@@ -63,7 +63,7 @@
 
       <div v-if="success" class="success-overlay">
         <div class="success-content premium-card">
-          <h2>✅ Compra Finalitzada!</h2>
+          <h2>Compra Finalitzada!</h2>
           <p>Gràcies <strong>{{ name }}</strong>. Hem enviat les entrades a <strong>{{ email }}</strong>.</p>
           <NuxtLink to="/" class="btn btn-primary">Tornar a l'Inici</NuxtLink>
         </div>

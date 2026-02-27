@@ -6,8 +6,8 @@
         <NuxtLink to="/" class="back-link">← Tornar al cartell</NuxtLink>
         <h1 class="serif">{{ event.name }}</h1>
         <div class="meta">
-          <span>📅 {{ event.date }}</span>
-          <span>📍 {{ event.location }}</span>
+          <span>Data: {{ event.date }}</span>
+          <span>Localització: {{ event.location }}</span>
         </div>
       </header>
 
@@ -94,12 +94,11 @@ const pending = computed(() => eventPending.value || seatsPending.value);
 const seats = ref([]);
 const userId = useCookie('cinema_user_id');
 
-// Generar userId només al client si no existeix per evitar hydration mismatch
-onMounted(() => {
-  if (!userId.value) {
-    userId.value = Math.random().toString(36).substring(2, 11);
-  }
-});
+// Inicialització robusta del userId
+if (process.client && !userId.value) {
+  userId.value = Math.random().toString(36).substring(2, 11);
+  console.log('🆔 Nou userId generat en setup:', userId.value);
+}
 
 const selectedSeats = computed(() => seats.value.filter(s => s.status === 'reserved' && s.user_id === userId.value));
 const totalPrice = computed(() => selectedSeats.value.reduce((acc, s) => acc + s.price, 0));
@@ -112,18 +111,28 @@ const errorMessage = ref('');
 // Sincronitzar seients inicials
 watch(initialSeats, (newSeats) => {
   if (newSeats) {
+    console.log('Seients inicials carregats via API:', newSeats.length);
     seats.value = [...newSeats];
   }
 }, { immediate: true });
 
 onMounted(() => {
+  console.log('Muntant component esdeveniment. Connection Status:', $socket.connected);
+  
+  if (!$socket.connected) {
+    $socket.connect();
+  }
+
   $socket.emit('join_event', eventId);
+  console.log('Emès join_event per:', eventId);
 
   $socket.on('seats_update', (updatedSeats) => {
+    console.log('Rebut seats_update:', updatedSeats.length);
     seats.value = updatedSeats;
   });
 
   $socket.on('seat_updated', (updatedSeat) => {
+    console.log('Rebut seat_updated:', updatedSeat.id, updatedSeat.status);
     const index = seats.value.findIndex(s => s.id === updatedSeat.id);
     if (index !== -1) {
       seats.value[index] = updatedSeat;
@@ -131,11 +140,13 @@ onMounted(() => {
   });
 
   $socket.on('reservation_success', ({ seatId }) => {
+    console.log('Reserva confirmada pel servidor:', seatId);
     lastSelectedSeatId.value = null;
     startTimer();
   });
 
   $socket.on('reservation_error', ({ message }) => {
+    console.error('Error de reserva:', message);
     errorMessage.value = message;
     lastSelectedSeatId.value = null;
     setTimeout(() => errorMessage.value = '', 3000);
@@ -170,6 +181,11 @@ function toggleSeat(seat) {
       return;
     }
     lastSelectedSeatId.value = seat.id;
+    console.log('Enviant reserve_seat...', { eventId, seatId: seat.id, userId: userId.value });
+    if (!$socket.connected) {
+      console.warn('Socket desconnectat. Intentant reconnectar...');
+      $socket.connect();
+    }
     $socket.emit('reserve_seat', { eventId, seatId: seat.id, userId: userId.value });
   }
 }

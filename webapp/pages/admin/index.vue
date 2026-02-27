@@ -45,6 +45,9 @@
             </div>
           </div>
         </div>
+        <div v-if="lastError" class="debug-error">
+          Últim error: {{ lastError }}
+        </div>
       </section>
     </div>
   </div>
@@ -54,6 +57,7 @@
 const { $socket } = useNuxtApp();
 const events = ref([]);
 const connectedUsers = ref(0);
+const lastError = ref(null);
 
 const stats = computed(() => {
   let totalRevenue = 0;
@@ -97,20 +101,35 @@ function viewDetails(id) {
 }
 
 async function resetAllSeats() {
+  const host = window.location.hostname || 'localhost';
+  const url = `http://${host}:3001/api/admin/reset`;
+  console.log(`Petició de reinici a: ${url}`);
+  lastError.value = null;
+
   if (confirm('Estàs segur que vols reiniciar tots els seients de tots els esdeveniments?')) {
     resetting.value = true;
     try {
-      const response = await $fetch('http://localhost:3001/api/admin/reset', {
-        method: 'POST'
+      const response = await $fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      }).catch(err => {
+        console.warn('Petició REST fallida, intentant fallback via Socket...');
+        $socket.emit('reset_seats');
+        return { success: true, fallback: true };
       });
+
+      console.log('Resposta del servidor:', response);
       if (response.success) {
-        alert('Base de dades reiniciada correctament.');
+        alert(response.fallback ? 'Reinici enviat via Socket (contingència).' : 'Reinici enviat via REST.');
       }
     } catch (error) {
-      console.error('Error al reiniciar:', error);
-      alert('Error al reiniciar la base de dades.');
+      console.error('Error total al reiniciar:', error);
+      lastError.value = error.message || 'Error desconegut';
+      alert(`Error crític: ${lastError.value}`);
     } finally {
-      resetting.value = false;
+      setTimeout(() => {
+        resetting.value = false;
+      }, 1000);
     }
   }
 }
@@ -190,5 +209,16 @@ async function resetAllSeats() {
 
 .btn-danger:hover {
   background: #bb0000;
+}
+
+.debug-error {
+  background: rgba(244, 67, 54, 0.1);
+  color: #f44336;
+  border: 1px solid rgba(244, 67, 54, 0.3);
+  padding: 1rem;
+  border-radius: 8px;
+  margin-top: 2rem;
+  font-family: monospace;
+  font-size: 0.85rem;
 }
 </style>

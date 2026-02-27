@@ -11,8 +11,8 @@
       <div v-for="event in events" :key="event.id" class="premium-card event-card">
         <div class="event-info">
           <h3>{{ event.name }}</h3>
-          <p class="event-date"><span class="icon">📅</span> {{ event.date }}</p>
-          <p class="event-location"><span class="icon">📍</span> {{ event.location }}</p>
+          <p class="event-date">Data: {{ event.date }}</p>
+          <p class="event-location">Localització: {{ event.location }}</p>
           <p class="event-desc">{{ event.description }}</p>
         </div>
         <NuxtLink :to="`/esdeveniment/${event.id}`" class="btn btn-primary">Veure Entrades</NuxtLink>

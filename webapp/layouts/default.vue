@@ -17,7 +17,7 @@
 
     <footer class="main-footer">
       <div class="container">
-        <p>&copy; 2026 Cinema Ticket System - Creat amb ❤️ per Pol Dones</p>
+        <p>&copy; 2026 Cinema Ticket System - Creat per Pol Dones</p>
       </div>
     </footer>
   </div>

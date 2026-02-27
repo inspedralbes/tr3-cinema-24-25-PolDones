@@ -64,7 +64,7 @@ io.on('connection', (socket) => {
 
     // Reserva de seient
     socket.on('reserve_seat', async ({ eventId, seatId, userId }) => {
-        console.log(`Reserva sol·licitada: Event ${eventId}, Seient ${seatId}, Usuari ${userId}`);
+        console.log(`Reserva sol·licitada: Event ${eventId}, Seient ${seatId}, Usuari ${userId || 'SENSE-ID'}`);
         const reservedUntil = new Date(Date.now() + 5 * 60 * 1000).toISOString();
 
         // Utilitzar un UPDATE atòmic amb una clàusula WHERE status = 'available'
@@ -142,12 +142,12 @@ io.on('connection', (socket) => {
                 broadcastAdminUpdate();
 
                 socket.emit('purchase_success');
-                console.log(`✅ Compra confirmada per ${email}: ${reservedSeats.length} seients.`);
+                console.log(`Compra confirmada per ${email}: ${reservedSeats.length} seients.`);
             } else {
                 socket.emit('purchase_error', { message: 'No tens seients reservats.' });
             }
         } catch (error) {
-            console.error('❌ Error en confirm_purchase:', error);
+            console.error('Error en confirm_purchase:', error);
             socket.emit('purchase_error', { message: 'Error intern del servidor.' });
         }
     });
@@ -221,10 +221,10 @@ app.post('/api/admin/reset', async (req, res) => {
         }
 
         await broadcastAdminUpdate();
-        console.log('✅ Base de dades reiniciada via API REST.');
+        console.log('Base de dades reiniciada via API REST.');
         res.json({ success: true, message: 'Seients i compres reiniciades correctament.' });
     } catch (error) {
-        console.error('❌ Error en reset via API:', error);
+        console.error('Error en reset via API:', error);
         res.status(500).json({ error: 'Error intern al reiniciar la base de dades.' });
     }
 });

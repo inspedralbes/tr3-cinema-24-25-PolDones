@@ -43,7 +43,7 @@ async function testConcurrency() {
 
     console.log('\nResultats del Test:');
     results.forEach(r => {
-        console.log(`${r.userId}: ${r.success ? '✅ÈXIT' : '❌ERROR'} (${r.message || ''})`);
+        console.log(`${r.userId}: ${r.success ? 'EXIT' : 'ERROR'} (${r.message || ''})`);
     });
 
     const successes = results.filter(r => r.success).length;
