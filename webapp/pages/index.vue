@@ -25,7 +25,9 @@
 </template>
 
 <script setup>
-const { data: events, pending, error } = useFetch('http://localhost:3001/api/events');
+const config = useRuntimeConfig();
+const baseURL = process.server ? config.apiBase : config.public.apiBase;
+const { data: events, pending, error } = await useFetch('/api/events', { baseURL });
 </script>
 
 <style scoped>

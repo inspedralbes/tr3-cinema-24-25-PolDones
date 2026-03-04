@@ -85,10 +85,10 @@ import { useLocalStorage } from '@vueuse/core';
 
 const route = useRoute();
 const eventId = route.params.id;
-const { $socket } = useNuxtApp();
-
-const { data: event, pending: eventPending } = useFetch(`http://localhost:3001/api/events/${eventId}`, { key: `event-${eventId}` });
-const { data: initialSeats, pending: seatsPending } = useFetch(`http://localhost:3001/api/events/${eventId}/seats`, { key: `seats-${eventId}` });
+const config = useRuntimeConfig();
+const baseURL = process.server ? config.apiBase : config.public.apiBase;
+const { data: event, pending: eventPending } = await useFetch(`/api/events/${eventId}`, { baseURL, key: `event-${eventId}` });
+const { data: initialSeats, pending: seatsPending } = await useFetch(`/api/events/${eventId}/seats`, { baseURL, key: `seats-${eventId}` });
 const pending = computed(() => eventPending.value || seatsPending.value);
 
 const seats = ref([]);
@@ -117,6 +117,7 @@ watch(initialSeats, (newSeats) => {
 }, { immediate: true });
 
 onMounted(() => {
+  const { $socket } = useNuxtApp();
   console.log('Muntant component esdeveniment. Connection Status:', $socket.connected);
   
   if (!$socket.connected) {
@@ -154,6 +155,7 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
+  const { $socket } = useNuxtApp();
   $socket.off('seats_update');
   $socket.off('seat_updated');
   $socket.off('reservation_success');
@@ -171,6 +173,7 @@ function getSeatStatusClass(seat) {
 
 function toggleSeat(seat) {
   if (seat.status === 'sold') return;
+  const { $socket } = useNuxtApp();
   
   if (seat.status === 'reserved' && seat.user_id === userId.value) {
     $socket.emit('release_seat', { eventId, seatId: seat.id, userId: userId.value });

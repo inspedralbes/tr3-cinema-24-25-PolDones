@@ -1,22 +1,23 @@
-# Documentació del Projecte Cinema
+# Documentació del Projecte CinemaPremium
 
-Benvingut a la documentació oficial del projecte Cinema. Aquest repositori conté una aplicació completa per a la gestió de reserves de seients de cinema en temps real.
+Benvingut a la documentació oficial del projecte Cinema. Aquest repositori conté una aplicació completa i d'alt rendiment per a la gestió de reserves de seients de cinema en temps real.
 
-## Índex
+L'objectiu d'aquesta documentació és proporcionar una visió integral tant per a desenvolupadors com per a usuaris finals.
 
-1.  [**Arquitectura del Sistema**](arquitectura.md): Detalls sobre el stack tecnològic, la base de dades i la lògica del servidor.
-2.  [**Guia de Funcionalitat**](funcionalitat.md): Manual d'ús per a usuaris i administradors.
+## Índex de Continguts
 
-## Visió General
+1.  [**Guia d'Execució**](execucio.md): Instruccions per posar en marxa l'aplicació amb Docker o de forma nativa. **(Lectura recomanada per començar)**.
+2.  [**Arquitectura del Sistema**](arquitectura.md): Detalls sobre el stack tecnològic, el disseny de la base de dades, la integració amb la Movies API i la lògica de comunicació en temps real.
+3.  [**Guia de Funcionalitat**](funcionalitat.md): Manual d'ús detallat per a l'usuari final (reserves) i per a l'administrador (gestió de sales).
 
-Aquesta aplicació ha estat dissenyada per oferir una experiència "Premium" tant en escriptori com en dispositius mòbils. Utilitza tecnologies modernes per assegurar que la selecció de seients sigui fluida i es sincronitzi a l'instant entre tots els usuaris connectats.
+## Visió General del Projecte
 
-### Característiques Principals
+CinemaPremium ha estat dissenyat per oferir una experiència fluida i elegant, inspirada en les plataformes de streaming modernes. Les característiques clau inclouen:
 
-- **Reserves en Temps Real**: Gràcies a Socket.IO, els seients es reserven i s'alliberen instantàniament.
-- **Disseny Premium**: Estètica fosca i elegant amb micro-animacions.
-- **Optimització Mòbil**: Interfície totalment adaptativa.
-- **Panell d'Admin**: Monitorització de vendes i gestió de la sala en viu.
+- **Sincronització Real-time**: Qualsevol canvi en l'estat d'un seient es reflecteix a l'instant en tots els navegadors oberts gràcies a WebSockets.
+- **Integració Dinàmica**: Els esdeveniments es generen automàticament a partir de dades reals de pel·lícules d'una API externa.
+- **Disseny Adaptatiu**: Una interfície "Mobile-First" que garanteix una bona experiència en qualsevol dispositiu.
+- **Contenidorització**: Totalment preparat per ser desplegat amb Docker, facilitant la portabilitat i el desplegament.
 
 ---
-*Creat per Antigravity per al projecte tr3-cinema-24-25-PolDones*
+*Documentació actualitzada el Març de 2026 per Antigravity.*

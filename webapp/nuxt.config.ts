@@ -4,4 +4,12 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   css: ['~/assets/css/main.css'],
   modules: ['@vueuse/nuxt'],
+  runtimeConfig: {
+    // @ts-ignore
+    apiBase: process.env.NUXT_API_BASE || 'http://localhost:3001',
+    public: {
+      // @ts-ignore
+      apiBase: process.env.NUXT_PUBLIC_API_BASE || 'http://localhost:3001'
+    }
+  }
 })

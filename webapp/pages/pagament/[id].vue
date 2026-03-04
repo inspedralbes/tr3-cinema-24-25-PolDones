@@ -77,16 +77,17 @@ import { useLocalStorage } from '@vueuse/core';
 
 const route = useRoute();
 const eventId = route.params.id;
-const { $socket } = useNuxtApp();
 
 const email = ref('');
 const name = ref('');
 const loading = ref(false);
 const success = ref(false);
 
+const config = useRuntimeConfig();
+const baseURL = process.server ? config.apiBase : config.public.apiBase;
 const userId = useCookie('cinema_user_id', { default: () => Math.random().toString(36).substring(2, 11) });
-const { data: event } = useFetch(`http://localhost:3001/api/events/${eventId}`);
-const { data: seatsData } = useFetch(`http://localhost:3001/api/events/${eventId}/seats`);
+const { data: event } = await useFetch(`/api/events/${eventId}`, { baseURL });
+const { data: seatsData } = await useFetch(`/api/events/${eventId}/seats`, { baseURL });
 
 const reservedSeats = ref([]);
 
@@ -98,6 +99,7 @@ watch([seatsData, userId], ([newSeats, newUserId]) => {
 }, { immediate: true });
 
 onMounted(() => {
+  const { $socket } = useNuxtApp();
   // Registrar listeners per a actualitzacions en temps real
   $socket.on('seats_update', (allSeats) => {
     reservedSeats.value = allSeats.filter(s => s.status === 'reserved' && s.user_id === userId.value);
@@ -122,6 +124,7 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
+  const { $socket } = useNuxtApp();
   $socket.off('seats_update');
   $socket.off('purchase_success');
   $socket.off('purchase_error');
@@ -131,6 +134,7 @@ const selectedSeatsCount = computed(() => reservedSeats.value.length);
 const totalAmount = computed(() => reservedSeats.value.reduce((acc, s) => acc + s.price, 0));
 
 function confirmPurchase() {
+  const { $socket } = useNuxtApp();
   loading.value = true;
   $socket.emit('confirm_purchase', {
     eventId,

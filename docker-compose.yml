@@ -1,0 +1,19 @@
+services:
+  server:
+    build: ./server
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./server/database.sqlite:/app/database.sqlite
+    environment:
+      - NODE_ENV=production
+
+  webapp:
+    build: ./webapp
+    ports:
+      - "3000:3000"
+    environment:
+      - NUXT_PUBLIC_API_BASE=http://localhost:3001
+      - NUXT_API_BASE=http://server:3001
+    depends_on:
+      - server

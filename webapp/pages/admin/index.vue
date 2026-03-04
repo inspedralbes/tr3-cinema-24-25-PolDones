@@ -54,7 +54,6 @@
 </template>
 
 <script setup>
-const { $socket } = useNuxtApp();
 const events = ref([]);
 const connectedUsers = ref(0);
 const lastError = ref(null);
@@ -77,6 +76,7 @@ const stats = computed(() => {
 });
 
 onMounted(() => {
+  const { $socket } = useNuxtApp();
   $socket.connect();
   $socket.emit('admin_join');
 
@@ -93,6 +93,7 @@ onMounted(() => {
 const resetting = ref(false);
 
 onUnmounted(() => {
+  const { $socket } = useNuxtApp();
   $socket.disconnect();
 });
 
@@ -101,8 +102,9 @@ function viewDetails(id) {
 }
 
 async function resetAllSeats() {
-  const host = window.location.hostname || 'localhost';
-  const url = `http://${host}:3001/api/admin/reset`;
+  const config = useRuntimeConfig();
+  const { $socket } = useNuxtApp();
+  const url = `${config.public.apiBase}/api/admin/reset`;
   console.log(`Petició de reinici a: ${url}`);
   lastError.value = null;
 

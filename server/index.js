@@ -178,8 +178,15 @@ io.on('connection', (socket) => {
 
 // API Routes
 app.get('/api/events', async (req, res) => {
-    const events = await db.all('SELECT * FROM events');
-    res.json(events);
+    console.log('GET /api/events');
+    try {
+        const events = await db.all('SELECT * FROM events');
+        console.log(`Trobat(s) ${events.length} esdeveniment(s)`);
+        res.json(events);
+    } catch (error) {
+        console.error('Error carregant esdeveniments:', error);
+        res.status(500).json({ error: 'Error intern' });
+    }
 });
 
 app.get('/api/events/:id', async (req, res) => {

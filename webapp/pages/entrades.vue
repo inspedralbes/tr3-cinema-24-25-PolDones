@@ -45,10 +45,11 @@ const tickets = ref([]);
 const searched = ref(false);
 
 async function lookupTickets() {
+  const config = useRuntimeConfig();
   loading.value = true;
   searched.value = true;
   try {
-    const data = await $fetch(`http://localhost:3001/api/tickets?email=${email.value}`);
+    const data = await $fetch(`${config.public.apiBase}/api/tickets?email=${email.value}`);
     tickets.value = data;
   } catch (e) {
     console.error(e);

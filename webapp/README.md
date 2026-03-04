@@ -1,23 +1,34 @@
-# Webapp Cinema (Nuxt 3)
+# Webapp CinemaPremium (Nuxt 3)
 
-Aquest és el frontend de l'aplicació Cinema, construït amb Nuxt 3.
+Aquest és el frontend de l'aplicació Cinema, construït amb Nuxt 3 i optimitzat per a una experiència d'usuari d'alta gamma.
 
-## Com executar
+## Característiques Tècniques
 
-Dins d'aquesta carpeta, instal·la les dependències i arrenca el servidor de desenvolupament:
+- **Framework**: Nuxt 3 (Vue 3).
+- **Client de Sockets**: Socket.io-client.
+- **Estils**: CSS Pur amb un enfocament "Mobile-First".
 
-```bash
-npm install
-npm run dev
-```
+## Configuració de Desenvolupament
 
-La web estarà disponible a [http://localhost:3000](http://localhost:3000).
+Per executar només la webapp localment:
 
-## Comandaments útils
+1.  Instal·la dependències:
+    ```bash
+    npm install
+    ```
+2.  Arrenca el servidor de desenvolupament:
+    ```bash
+    npm run dev
+    ```
 
-- `npm run dev`: Arrenca el servidor de desenvolupament.
-- `npm run build`: Genera el projecte per a producció.
-- `npm run preview`: Previsualitza la versió de producció localment.
+### Variables d'Entorn Importants
+
+La webapp necessita saber on es troba el servidor d'API. Pots configurar-ho mitjançant:
+- **`NUXT_PUBLIC_API_BASE`**: Per defecte `http://localhost:3001`.
+
+## Dockerització
+
+Aquest mòdul està preparat per ser construït com una imatge de Docker. Pots fer-ho manualment o utilitzar el `docker-compose.yml` situat a l'arrel del projecte.
 
 ---
-Per a més detalls tècnics, consulta la [documentació global](../doc/README.md).
+Per a la guia completa d'execució, consulta [Guia d'Execució](../doc/execucio.md).
