@@ -1,13 +1,19 @@
 <template>
-  <div class="container">
-    <div v-if="pending" class="loading">Carregant esdeveniment...</div>
-    <div v-else-if="event" class="event-detail">
+  <div class="event-page fade-in">
+    <div v-if="pending" class="loading-container">
+      <div class="loader"></div>
+      <p>Carregant seients...</p>
+    </div>
+    
+    <div v-else-if="event" class="container">
       <header class="event-header">
-        <NuxtLink to="/" class="back-link">← Tornar al cartell</NuxtLink>
+        <NuxtLink to="/" class="back-link">
+          <span class="icon">←</span> Tornar a la cartellera
+        </NuxtLink>
         <h1 class="serif">{{ event.name }}</h1>
-        <div class="meta">
-          <span>Data: {{ event.date }}</span>
-          <span>Localització: {{ event.location }}</span>
+        <div class="event-meta">
+          <span class="badge">{{ event.date }}</span>
+          <span class="badge outline">{{ event.location }}</span>
         </div>
       </header>
 
@@ -48,31 +54,44 @@
         </div>
 
         <!-- Selection Panel -->
-        <div class="selection-panel premium-card">
-          <h3>La teva selecció</h3>
-          <div v-if="selectedSeats.length === 0" class="no-selection">
-            No has seleccionat cap seient encara.
-          </div>
-          <div v-else>
-            <ul class="selected-list">
-              <li v-for="seat in selectedSeats" :key="seat.id">
-                Fila {{ seat.row }}, Seient {{ seat.col }} - <strong>{{ seat.price }}€</strong>
-              </li>
-            </ul>
-            <div class="total">
-              <span>Total:</span>
-              <span class="price-val">{{ totalPrice }}€</span>
+        <div class="selection-panel-wrapper">
+          <div class="selection-panel premium-card sticky-panel">
+            <h3 class="serif">La teva <span class="text-gradient">reserva</span></h3>
+            
+            <div v-if="selectedSeats.length === 0" class="no-selection">
+              <div class="empty-state-icon">🎟️</div>
+              <p>Selecciona les teves butaques al mapa de l'esquerra.</p>
             </div>
             
-            <div v-if="timer > 0" class="timer">
-              La reserva expira en: <strong>{{ formatTime(timer) }}</strong>
+            <div v-else class="selection-content fade-in">
+              <ul class="selected-list">
+                <li v-for="seat in selectedSeats" :key="seat.id">
+                  <div class="seat-info">
+                    <span class="seat-pos">Fila {{ seat.row }}, Butaca {{ seat.col }}</span>
+                    <strong class="seat-price">{{ seat.price }}€</strong>
+                  </div>
+                </li>
+              </ul>
+              
+              <div class="total-bar">
+                <span>Total de la reserva</span>
+                <span class="price-val">{{ totalPrice }}€</span>
+              </div>
+              
+              <div v-if="timer > 0" class="timer-box">
+                <span class="timer-pulse"></span>
+                La reserva expira en: <strong>{{ formatTime(timer) }}</strong>
+              </div>
+
+              <button @click="proceedToPurchase" class="btn btn-primary w-full btn-checkout">
+                Continuar al pagament
+                <span class="arrow">→</span>
+              </button>
             </div>
 
-            <button @click="proceedToPurchase" class="btn btn-primary w-full">Continuar amb la compra</button>
-          </div>
-
-          <div v-if="errorMessage" class="error-msg">
-            {{ errorMessage }}
+            <div v-if="errorMessage" class="error-msg fade-in">
+              {{ errorMessage }}
+            </div>
           </div>
         </div>
       </div>
@@ -223,42 +242,85 @@ function proceedToPurchase() {
 </script>
 
 <style scoped>
+.event-page {
+  min-height: 100vh;
+  padding-top: 1rem;
+}
+
 .back-link {
-  color: #aaa;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--ink-tertiary);
   text-decoration: none;
-  font-size: 0.9rem;
-  margin-bottom: 1rem;
-  display: block;
+  font-size: 0.95rem;
+  font-weight: 500;
+  margin-bottom: 1.5rem;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.back-link:hover {
+  color: var(--ink-primary);
+  transform: translateX(-4px);
+}
+
+.event-header {
+  margin-bottom: 3rem;
+  text-align: center;
 }
 
 .event-header h1 {
-  font-size: 3rem;
-  margin: 0.5rem 0;
+  font-size: 3.5rem;
+  margin: 0 0 1rem;
+  line-height: 1.1;
+  text-shadow: 0 4px 20px rgba(0,0,0,0.5);
 }
 
-.meta {
-  color: var(--ink-tertiary);
-  margin-bottom: 3rem;
-  font-size: 0.95rem;
-  text-transform: uppercase;
-  letter-spacing: 1px;
+.event-meta {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.badge {
+  background: var(--surface-high);
+  color: var(--ink-primary);
+  padding: 0.5rem 1.25rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border: 1px solid var(--border-soft);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+}
+
+.badge.outline {
+  background: transparent;
+  color: var(--ink-secondary);
 }
 
 .booking-layout {
   display: grid;
-  grid-template-columns: 1fr 380px;
-  gap: 3rem;
+  grid-template-columns: 1fr 400px;
+  gap: 2.5rem;
+  align-items: start;
 }
 
 .seat-map-container {
   padding: 4rem 2rem;
-  background: var(--surface-low);
-  overflow: hidden;
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .seat-grid-wrapper {
   perspective: 1200px;
-  padding: 0 2rem;
+  padding: 2rem 1rem 5rem;
+  width: 100%;
+  max-width: 800px;
+  /* Cinematic screen glow reflection on the floor */
+  background: radial-gradient(ellipse at top, rgba(255, 253, 240, 0.05) 0%, transparent 75%);
 }
 
 .seat-grid {
@@ -267,58 +329,154 @@ function proceedToPurchase() {
   gap: 0;
   transform: rotateX(20deg);
   transform-style: preserve-3d;
+  margin: 0 auto;
 }
 
 .legend {
   display: flex;
   justify-content: center;
+  flex-wrap: wrap;
   gap: 2rem;
-  margin-top: 3rem;
-  font-size: 0.85rem;
-  color: #aaa;
+  margin-top: 4rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--border-soft);
+  width: 100%;
 }
 
 .legend-item {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.75rem;
+  color: var(--ink-secondary);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+.legend-item .seat {
+  margin: 0;
+  transform: scale(0.85) translateZ(0);
+}
+
+/* Panel Styles */
+.selection-panel-wrapper {
+  position: relative;
+  height: 100%;
+}
+
+.sticky-panel {
+  position: sticky;
+  top: 100px;
 }
 
 .selection-panel h3 {
-  margin-top: 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  padding-bottom: 1rem;
+  margin: 0 0 1.5rem;
+  font-size: 1.8rem;
+}
+
+.no-selection {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--ink-tertiary);
+  background: rgba(0,0,0,0.2);
+  border-radius: var(--radius-md);
+  border: 1px dashed var(--border-medium);
+}
+
+.empty-state-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
 }
 
 .selected-list {
   list-style: none;
   padding: 0;
+  margin: 0 0 1.5rem;
 }
 
 .selected-list li {
-  padding: 0.5rem 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: var(--radius-sm);
+  margin-bottom: 0.5rem;
+  border-left: 3px solid var(--brand);
 }
 
-.total {
+.seat-info {
   display: flex;
   justify-content: space-between;
+  align-items: center;
+}
+
+.seat-pos {
+  font-weight: 500;
+  color: var(--ink-primary);
+}
+
+.seat-price {
+  color: var(--ink-secondary);
+}
+
+.total-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 0;
+  margin: 1.5rem 0;
+  border-top: 1px solid var(--border-medium);
+  border-bottom: 1px solid var(--border-medium);
   font-size: 1.25rem;
   font-weight: 700;
-  margin: 1.5rem 0;
+  color: var(--ink-primary);
 }
 
 .price-val {
-  color: var(--primary);
+  font-size: 1.75rem;
+  background: linear-gradient(135deg, var(--brand) 0%, #ff4d4d 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
-.timer {
-  background: rgba(229, 9, 20, 0.1);
-  color: var(--primary);
-  padding: 0.75rem;
-  border-radius: 8px;
-  text-align: center;
+.timer-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  background: rgba(245, 158, 11, 0.1);
+  color: var(--warning);
+  padding: 1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(245, 158, 11, 0.2);
   margin-bottom: 1.5rem;
+  font-size: 0.95rem;
+}
+
+.timer-pulse {
+  width: 8px;
+  height: 8px;
+  background: var(--warning);
+  border-radius: 50%;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7); }
+  70% { box-shadow: 0 0 0 10px rgba(245, 158, 11, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
+}
+
+.btn-checkout {
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  font-size: 1.1rem;
+}
+
+.btn-checkout .arrow {
+  font-size: 1.2rem;
+  transition: transform 0.3s ease;
+}
+
+.btn-checkout:hover .arrow {
+  transform: translateX(4px);
 }
 
 .w-full {
@@ -326,32 +484,28 @@ function proceedToPurchase() {
 }
 
 .error-msg {
-  color: var(--sold);
-  background: rgba(244, 67, 54, 0.1);
-  padding: 0.75rem;
-  border-radius: 8px;
-  margin-top: 1rem;
+  color: #fca5a5;
+  background: rgba(220, 38, 38, 0.15);
+  padding: 1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(220, 38, 38, 0.3);
+  margin-top: 1.5rem;
   text-align: center;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
+  font-weight: 500;
 }
 
 @media (max-width: 992px) {
   .booking-layout {
     grid-template-columns: 1fr;
-    gap: 2rem;
   }
 
-  .selection-panel {
-    order: 2;
-  }
-
-  .seat-map-container {
-    order: 1;
-    padding: 2rem 1rem;
+  .sticky-panel {
+    position: static;
   }
 
   .event-header h1 {
-    font-size: 2.25rem;
+    font-size: 2.5rem;
   }
 }
 
@@ -360,32 +514,49 @@ function proceedToPurchase() {
     padding: 0;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
-    padding-bottom: 1rem;
+    padding-bottom: 2rem;
   }
 
   .seat-grid {
     width: max-content;
-    margin: 0 auto;
   }
 
   .row-label {
     position: sticky;
     left: 0;
-    background: var(--surface-low);
+    background: var(--surface);
+    backdrop-filter: blur(10px);
     z-index: 2;
     margin-right: 0.5rem;
+    padding: 0 0.5rem;
+    border-radius: 4px;
   }
-
+  
   .legend {
-    flex-wrap: wrap;
-    gap: 1rem;
     justify-content: flex-start;
   }
 }
 
-.loading {
-  text-align: center;
-  padding: 5rem;
-  font-size: 1.2rem;
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+}
+
+.loader {
+  width: 48px;
+  height: 48px;
+  border: 3px solid rgba(225, 29, 72, 0.3);
+  border-radius: 50%;
+  border-bottom-color: var(--brand);
+  animation: rotation 1s linear infinite;
+  margin-bottom: 1.5rem;
+}
+
+@keyframes rotation {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 </style>

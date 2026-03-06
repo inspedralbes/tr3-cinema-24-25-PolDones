@@ -73,27 +73,43 @@ async function initDb() {
     const eventCount = await db.get('SELECT COUNT(*) as count FROM events');
     if (eventCount.count === 0) {
         console.log('Fetching movies from API...');
-        const apiMovies = await fetchMoviesFromApi();
+        let apiMovies = await fetchMoviesFromApi();
 
         await db.run('BEGIN TRANSACTION');
         try {
-            if (apiMovies.length > 0) {
-                for (const movie of apiMovies) {
-                    const daysAhead = Math.floor(Math.random() * 7) + 1;
-                    const hours = 18 + Math.floor(Math.random() * 4);
-                    const movieDate = new Date();
-                    movieDate.setDate(movieDate.getDate() + daysAhead);
-                    movieDate.setHours(hours, 0, 0, 0);
-                    const dateStr = movieDate.toISOString().replace('T', ' ').substring(0, 16);
+            // Default fallback movies if API fails
+            if (!apiMovies || apiMovies.length === 0) {
+                apiMovies = [
+                    { title: 'Gran Estrena: El Futur', description: 'Una experiència immersiva sobre el futur de la tecnologia.', image_url: 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba' },
+                    { title: 'Aventures Galàctiques', description: 'Un viatge a través de les estrelles i galàxies.', image_url: 'https://images.unsplash.com/photo-1506443432602-ac2fcd6f5ec0' },
+                    { title: 'Misteri a la Mitjanit', description: 'Un thriller captivador on res és el que sembla.', image_url: 'https://images.unsplash.com/photo-1626814026160-2237a95fc5a0' },
+                    { title: 'Comèdia d\'Estiu', description: 'Riures assegurats amb aquesta esbojarrada comèdia.', image_url: 'https://images.unsplash.com/photo-1478720568477-152d9b164e26' }
+                ];
+            }
 
-                    await db.run(
-                        "INSERT INTO events (name, description, date, location, image, rows, cols) VALUES (?, ?, ?, ?, ?, ?, ?)",
-                        [movie.title, movie.description, dateStr, 'Sala Principal', movie.image_url, 5, 8]
-                    );
+            // Ensure we have exactly 4 distinct movies
+            const moviesToSchedule = apiMovies.slice(0, 4);
+            const theaters = ['Sala 1', 'Sala 2', 'Sala 3', 'Sala 4'];
+            const sessionHours = [16, 19, 22]; // 3 sessions per day
+
+            // Generate schedule for today and the next 2 days (3 days total)
+            for (let dayOffset = 0; dayOffset < 3; dayOffset++) {
+                for (let i = 0; i < moviesToSchedule.length; i++) {
+                    const movie = moviesToSchedule[i];
+                    const theater = theaters[i % theaters.length];
+
+                    for (const hour of sessionHours) {
+                        const movieDate = new Date();
+                        movieDate.setDate(movieDate.getDate() + dayOffset);
+                        movieDate.setHours(hour, 0, 0, 0);
+                        const dateStr = movieDate.toISOString().replace('T', ' ').substring(0, 16);
+
+                        await db.run(
+                            "INSERT INTO events (name, description, date, location, image, rows, cols) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                            [movie.title, movie.description, dateStr, theater, movie.image_url, 5, 8]
+                        );
+                    }
                 }
-            } else {
-                await db.run("INSERT INTO events (name, description, date, location, image, rows, cols) VALUES (?, ?, ?, ?, ?, ?, ?)",
-                    ['Gran Estrena: El Futur del Cinema', 'Una experiència immersiva sobre el futur de la tecnologia.', '2026-02-28 20:00', 'Sala Principal', 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba', 5, 8]);
             }
 
             // Generate seats
