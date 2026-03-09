@@ -17,6 +17,3 @@ Aquesta aplicació ha estat dissenyada per oferir una experiència "Premium" tan
 - **Disseny Premium**: Estètica fosca i elegant amb micro-animacions.
 - **Optimització Mòbil**: Interfície totalment adaptativa.
 - **Panell d'Admin**: Monitorització de vendes i gestió de la sala en viu.
-
----
-*Creat per Antigravity per al projecte tr3-cinema-24-25-PolDones*
