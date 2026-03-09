@@ -1,7 +1,8 @@
 import { io } from "socket.io-client";
 
 export default defineNuxtPlugin(() => {
-    const socket = io("http://localhost:3001", {
+    const config = useRuntimeConfig();
+    const socket = io(config.public.apiBase as string, {
         autoConnect: true,
     });
 
