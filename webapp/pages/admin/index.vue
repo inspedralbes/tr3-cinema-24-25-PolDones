@@ -16,28 +16,24 @@
 
       <div class="stats-grid">
         <div class="stat-card premium-card fade-in" style="animation-delay: 0.1s">
-          <div class="stat-icon">💰</div>
           <div class="stat-info">
             <h3>Recaptació Total</h3>
             <span class="stat-value price-text">{{ stats.totalRevenue }}€</span>
           </div>
         </div>
         <div class="stat-card premium-card fade-in" style="animation-delay: 0.2s">
-          <div class="stat-icon">🎟️</div>
           <div class="stat-info">
             <h3>Entrades Venudes</h3>
             <span class="stat-value">{{ stats.soldSeats }}</span>
           </div>
         </div>
         <div class="stat-card premium-card fade-in" style="animation-delay: 0.3s">
-          <div class="stat-icon">📊</div>
           <div class="stat-info">
             <h3>Ocupació Mitjana</h3>
             <span class="stat-value">{{ stats.occupancy }}%</span>
           </div>
         </div>
         <div class="stat-card premium-card fade-in" style="animation-delay: 0.4s">
-          <div class="stat-icon online-icon">👥</div>
           <div class="stat-info">
             <h3>Usuaris Online</h3>
             <span class="stat-value text-gradient">{{ connectedUsers }}</span>
