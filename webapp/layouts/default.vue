@@ -1,3 +1,7 @@
+<script setup>
+import ThemeToggle from '~/components/ThemeToggle.vue'
+</script>
+
 <template>
   <div class="app-layout fade-in">
     <div class="glass-background"></div>
@@ -14,6 +18,7 @@
     </header>
 
     <main>
+      <ThemeToggle />
       <slot />
     </main>
 
